@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Diabetes Risk Predictor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #F5F2ED;
+      --surface:    #FFFFFF;
+      --border:     #E2DDD6;
+      --text:       #1A1A1A;
+      --muted:      #8A8070;
+      --accent:     #2E6EFF;
+      --accent-bg:  #EBF0FF;
+      --danger:     #D94F3D;
+      --danger-bg:  #FDECEA;
+      --success:    #2B8A3E;
+      --success-bg: #E8F5E9;
+      --input-bg:   #2B2925;
+      --input-txt:  #F5F2ED;
+      --radius:     14px;
+      --shadow:     0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 48px 16px 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 52px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 18px;
+    }
+    .badge::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.1rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      max-width: 880px;
+      margin: 0 auto 20px;
+      box-shadow: var(--shadow);
+      animation: fadeUp .45s ease both;
+    }
+    .card:nth-child(1) { animation-delay: .05s; }
+    .card:nth-child(2) { animation-delay: .10s; }
+    .card:nth-child(3) { animation-delay: .15s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    .card-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    /* ── Grid ── */
+    .grid { display: grid; gap: 24px; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 680px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .card { padding: 24px 20px; }
+    }
+
+    /* ── Field ── */
+    .field { display: flex; flex-direction: column; gap: 8px; }
+
+    label {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    input[type="number"] {
+      background: var(--input-bg);
+      color: var(--input-txt);
+      border: none;
+      border-radius: 10px;
+      padding: 16px 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 15.5px;
+      width: 100%;
+      outline: none;
+      transition: box-shadow .2s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]::placeholder { color: rgba(245,242,237,.32); }
+    input[type="number"]:focus { box-shadow: 0 0 0 2.5px var(--accent); }
+    input[type="number"].error { box-shadow: 0 0 0 2.5px var(--danger) !important; }
+
+    .hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Pregnancy radio ── */
+    .radio-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+
+    .radio-option { position: relative; }
+    .radio-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-option label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px; height: 50px;
+      background: var(--input-bg);
+      color: rgba(245,242,237,.75);
+      border-radius: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .15s, color .15s, box-shadow .15s;
+      user-select: none;
+    }
+    .radio-option input[type="radio"]:checked + label {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(46,110,255,.35);
+    }
+    .radio-option label:hover { background: #3d3a35; color: var(--input-txt); }
+
+    /* ── Submit ── */
+    .submit-wrap {
+      max-width: 880px;
+      margin: 4px auto 0;
+      animation: fadeUp .45s .2s ease both;
+    }
+
+    .btn-predict {
+      width: 100%;
+      padding: 18px;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15.5px;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: .03em;
+      transition: transform .15s, box-shadow .15s, background .15s;
+    }
+    .btn-predict:hover {
+      background: #2d2d2d;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.18);
+    }
+    .btn-predict:active { transform: translateY(0); box-shadow: none; }
+    .btn-predict:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── Result ── */
+    #result-card {
+      display: none;
+      max-width: 880px;
+      margin: 22px auto 0;
+      border-radius: var(--radius);
+      padding: 28px 36px;
+      border: 1px solid transparent;
+      animation: fadeUp .4s ease both;
+    }
+    #result-card.diabetic     { background: var(--danger-bg);  border-color: #f5c0b8; }
+    #result-card.not-diabetic { background: var(--success-bg); border-color: #a8d5b5; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .result-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+    }
+    #result-card.diabetic     .result-label { color: var(--danger);  }
+    #result-card.not-diabetic .result-label { color: var(--success); }
+
+    .result-prob {
+      font-family: 'DM Mono', monospace;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      height: 8px;
+      background: rgba(0,0,0,.09);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 100px;
+      width: 0%;
+      transition: width .85s cubic-bezier(.4,0,.2,1);
+    }
+    #result-card.diabetic     .bar-fill { background: var(--danger);  }
+    #result-card.not-diabetic .bar-fill { background: var(--success); }
+
+    /* spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(245,242,237,.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin .65s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* offline notice */
+    .offline-note {
+      max-width: 880px;
+      margin: 0 auto 20px;
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: var(--radius);
+      padding: 13px 20px;
+      font-size: 12.5px;
+      color: #7d6800;
+      line-height: 1.6;
+    }
+    .offline-note code {
+      background: rgba(0,0,0,.06);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: 'DM Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">ML Prediction Tool</div>
+    <h1>Diabetes Risk Predictor</h1>
+    <p class="subtitle">Enter patient health metrics below to assess diabetes risk using a trained Random Forest model</p>
+  </div>
+
+  <!-- <div class="offline-note">
+    ⚡ Ensure your Flask backend is running at <code>http://127.0.0.1:5000</code> before submitting —
+    start it with <code>python app.py</code>
+  </div> -->
+
+  <!-- Blood Markers -->
+  <div class="card">
+    <div class="card-title">Blood Markers</div>
+    <div class="grid grid-2">
+      <div class="field">
+        <label for="glucose">Glucose level (mg/dL)</label>
+        <input type="number" id="glucose" placeholder="e.g. 120" min="0" max="500"/>
+        <span class="hint">Normal: 70–99 mg/dL</span>
+      </div>
+      <div class="field">
+        <label for="insulin">Insulin level (µU/mL)</label>
+        <input type="number" id="insulin" placeholder="e.g. 80" min="0" max="900"/>
+        <span class="hint">Normal: 16–166 µU/mL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Physical Measurements -->
+  <div class="card">
+    <div class="card-title">Physical Measurements</div>
+    <div class="grid grid-3">
+      <div class="field">
+        <label for="bmi">BMI (kg/m²)</label>
+        <input type="number" id="bmi" placeholder="e.g. 28.5" step="0.1" min="0" max="100"/>
+        <span class="hint">Healthy: 18.5–24.9</span>
+      </div>
+      <div class="field">
+        <label for="skin">Skin thickness (mm)</label>
+        <input type="number" id="skin" placeholder="e.g. 23" min="0" max="100"/>
+        <span class="hint">Tricep fold thickness</span>
+      </div>
+      <div class="field">
+        <label for="bp">Blood pressure (mmHg)</label>
+        <input type="number" id="bp" placeholder="e.g. 72" min="0" max="200"/>
+        <span class="hint">Diastolic reading</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Profile -->
+  <div class="card">
+    <div class="card-title">Patient Profile</div>
+    <div class="grid grid-2" style="margin-bottom: 26px;">
+      <div class="field">
+        <label for="age">Age (years)</label>
+        <input type="number" id="age" placeholder="e.g. 35" min="1" max="120"/>
+      </div>
+      <div class="field">
+        <label for="dpf">Diabetes pedigree function</label>
+        <input type="number" id="dpf" placeholder="e.g. 0.47" step="0.001" min="0" max="3"/>
+        <span class="hint">Family history score</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Pregnancy history</label>
+      <div class="radio-group" id="pregnancies-group"></div>
+      <span class="hint" style="margin-top:4px;">Number of pregnancies (select 0 if male / not applicable)</span>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-wrap">
+    <button class="btn-predict" id="predict-btn" onclick="runPredict()">
+      Assess Diabetes Risk
+    </button>
+  </div>
+
+  <!-- Result -->
+  <div id="result-card">
+    <div class="result-header">
+      <span class="result-label" id="result-label"></span>
+      <span class="result-prob"  id="result-prob"></span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="bar-fill"></div>
+    </div>
+  </div>
+
+  <script>
+    // Build pregnancy radio buttons (0–8+)
+    const grp = document.getElementById('pregnancies-group');
+    for (let i = 0; i <= 8; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'radio-option';
+      wrap.innerHTML =
+        `<input type="radio" name="pregnancies" id="preg-${i}" value="${i}" ${i===0?'checked':''}>` +
+        `<label for="preg-${i}">${i}${i===8?'+':''}</label>`;
+      grp.appendChild(wrap);
+    }
+
+    async function runPredict() {
+      const ids = ['glucose','bp','skin','insulin','bmi','dpf','age'];
+      const inputs = ids.map(id => document.getElementById(id));
+
+      // Clear previous errors
+      inputs.forEach(el => el.classList.remove('error'));
+
+      let valid = true;
+      inputs.forEach(el => {
+        if (el.value === '' || isNaN(parseFloat(el.value))) {
+          el.classList.add('error');
+          valid = false;
+        }
+      });
+      if (!valid) { inputs.find(el => el.value === '')?.focus(); return; }
+
+      const [glucose, bp, skin, insulin, bmi, dpf, age] = inputs.map(el => parseFloat(el.value));
+      const pregnancies = parseInt(document.querySelector('input[name="pregnancies"]:checked').value);
+
+      // Feature order: Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age
+      const featuresArr = [pregnancies, glucose, bp, skin, insulin, bmi, dpf, age];
+
+      const btn = document.getElementById('predict-btn');
+      const resultCard = document.getElementById('result-card');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Analyzing…';
+      resultCard.style.display = 'none';
+
+      try {
+        const res = await fetch('http://127.0.0.1:5000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ features: featuresArr }),
+        });
+        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+        const data = await res.json();
+
+        const isDiabetic = data.prediction === 'Diabetic';
+        const prob = (data.probability_diabetic * 100).toFixed(1);
+
+        resultCard.className = isDiabetic ? 'diabetic' : 'not-diabetic';
+        document.getElementById('result-label').textContent = data.prediction;
+        document.getElementById('result-prob').textContent  = `Risk probability: ${prob}%`;
+        resultCard.style.display = 'block';
+
+        // Animate probability bar
+        requestAnimationFrame(() => {
+          setTimeout(() => { document.getElementById('bar-fill').style.width = prob + '%'; }, 60);
+        });
+
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (err) {
+        alert(
+          'Could not reach the prediction server.\n\n' +
+          'Make sure Flask is running:\n  python app.py\n\n' +
+          'Error: ' + err.message
+        );
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Assess Diabetes Risk';
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') runPredict(); });
+  </script>
+</body>
+</html>
