@@ -30,24 +30,4 @@ Final Selected Algorithm: Random Forest Classifier
 ## Dataset
 Pima Indians Diabetes Dataset
 
-## How to Run
 
-1. Clone the repository.
-2. Create and activate a Python virtual environment.
-3. Install the dependencies:
-
-   pip install -r backend/requirements.txt
-
-4. Navigate to the backend folder:
-
-   cd backend
-
-5. Run the Flask application:
-
-   python app.py
-
-6. Open http://127.0.0.1:5000 in your browser.
-
-## Disclaimer
-This project is for educational purposes only
-and is not a medical diagnostic tool.
